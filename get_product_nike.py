@@ -4,11 +4,6 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import openpyxl
 import time
-import requests
-
-headers = {
-    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36'
-}
 
 url = 'https://www.nike.com/id/w/mens-football-shoes-1gdj0znik1zy7ok'
 driver = webdriver.Chrome(ChromeDriverManager().install())
@@ -29,7 +24,6 @@ for item in product_list : #get_link
 
 print("Jumlah data = ", len(productlinks))
 
-driver.close()
 
 product = []
 i = 0
@@ -38,9 +32,9 @@ for link in productlinks:
     i = i+1
     print("data ke = ", i) 
 
-    req = requests.get(link, headers=headers)
-
-    soup = BeautifulSoup(req.content, 'html.parser')
+    driver.get(link)
+    time.sleep(5)
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
     
     rvw = []
     img = []
@@ -57,9 +51,9 @@ for link in productlinks:
         rvw.append((review))
     
 
-    for item2 in soup.find_all('div', class_="css-jpr23i"):
-        for link in item2.find_all('img', class_="css-7csl07"):
-            img.append(link['src'])
+    for item2 in soup.find_all('div', class_="css-1mhv7vq"):
+        for image in item2.find_all('img'):
+            img.append(image['src'])
 
     for item3 in soup.find_all('label', class_='css-xf3ahq'):
         sz = item3.text.strip()
@@ -77,7 +71,7 @@ for link in productlinks:
         }
     product.append(data)
 
-
+driver.close()
 df = pd.DataFrame(product)
 df.to_excel("Men's Football Shoes.xlsx", index=False)
 print(df)
